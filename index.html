@@ -71,6 +71,7 @@
       border-radius: 6px;
       text-align: center;
       border-left: 3px solid var(--accent-red);
+      min-width: 65px;
     }
 
     .time-box .num { font-size: 1.5rem; font-weight: bold; }
@@ -83,6 +84,7 @@
       align-items: flex-end;
       border-left: 1px dashed #30363d;
       padding-left: 20px;
+      gap: 8px;
     }
 
     .badge {
@@ -102,6 +104,12 @@
       gap: 20px;
     }
 
+    .grid-menu a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
     .card {
       background: var(--card-bg);
       border: 1px solid #30363d;
@@ -111,6 +119,7 @@
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      height: 100%;
     }
 
     .card:hover {
@@ -145,9 +154,10 @@
       <p style="color: var(--text-muted);">Autodromo Nazionale Monza</p>
 
       <div class="timer">
-        <div class="time-box"><div class="num">02</div><div class="label">Giorni</div></div>
-        <div class="time-box"><div class="num">14</div><div class="label">Ore</div></div>
-        <div class="time-box"><div class="num">35</div><div class="label">Minuti</div></div>
+        <div class="time-box"><div class="num" id="days">00</div><div class="label">Giorni</div></div>
+        <div class="time-box"><div class="num" id="hours">00</div><div class="label">Ore</div></div>
+        <div class="time-box"><div class="num" id="minutes">00</div><div class="label">Minuti</div></div>
+        <div class="time-box"><div class="num" id="seconds">00</div><div class="label">Secondi</div></div>
       </div>
     </div>
 
@@ -160,30 +170,66 @@
 
   <!-- BENTO GRID MENU -->
   <section class="grid-menu">
-    <div class="card">
-      <div class="card-icon">🔨</div>
-      <h3>Asta Room</h3>
-      <p>Organizza l'asta live con i tuoi amici, gestisci i crediti e completa la tua rosa.</p>
-    </div>
+    
+    <a href="asta.html">
+      <div class="card">
+        <div class="card-icon">🔨</div>
+        <h3>Asta Room</h3>
+        <p>Organizza l'asta live con i tuoi amici, gestisci i crediti e completa la tua rosa.</p>
+      </div>
+    </a>
 
-    <div class="card">
-      <div class="card-icon">🏎️</div>
-      <h3>Garage Scuderia</h3>
-      <p>Schiera i tuoi 2 piloti, la riserva e imposta la strategia gomme per il weekend.</p>
-    </div>
+    <a href="#">
+      <div class="card">
+        <div class="card-icon">🏎️</div>
+        <h3>Garage Scuderia</h3>
+        <p>Schiera i tuoi 2 piloti, la riserva e imposta la strategia gomme per il weekend.</p>
+      </div>
+    </a>
 
-    <div class="card">
-      <div class="card-icon">📊</div>
-      <h3>Telemetry Center</h3>
-      <p>Classifiche Piloti e Costruttori reali e della tua lega con statistiche avanzate.</p>
-    </div>
+    <a href="#">
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Telemetry Center</h3>
+        <p>Classifiche Piloti e Costruttori reali e della tua lega con statistiche avanzate.</p>
+      </div>
+    </a>
 
-    <div class="card">
-      <div class="card-icon">📻</div>
-      <h3>Radio Box</h3>
-      <p>Invia provocazioni agli avversari e controlli le penalità in tempo reale.</p>
-    </div>
+    <a href="#">
+      <div class="card">
+        <div class="card-icon">📻</div>
+        <h3>Radio Box</h3>
+        <p>Invia provocazioni agli avversari e controlla le penalità in tempo reale.</p>
+      </div>
+    </a>
+
   </section>
+
+  <script>
+    // Countdown Timer in tempo reale
+    const raceDate = new Date();
+    raceDate.setDate(raceDate.getDate() + 3); // Imposta il timer a 3 giorni da oggi
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const distance = raceDate - now;
+
+      if (distance < 0) return;
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById("days").innerText = days.toString().padStart(2, '0');
+      document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+      document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+      document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+  </script>
 
 </body>
 </html>
