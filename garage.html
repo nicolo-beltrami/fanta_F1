@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garage Scuderia - Paddock Fantasy</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --accent-red: #e10600;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --neon-glow: rgba(225, 6, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid var(--accent-red);
+      margin-bottom: 25px;
+    }
+
+    .back-btn {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--accent-red); }
+
+    .garage-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 { color: var(--accent-red); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+    
+    select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    button.btn-red {
+      background: var(--accent-red);
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.2s;
+    }
+
+    button.btn-red:hover { opacity: 0.9; }
+
+    /* CARDS SCHIERAMENTO */
+    .slot-card {
+      background: #0d1117;
+      border: 1px dashed #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slot-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+    .slot-value { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
+
+    /* STRATEGIA GOMME */
+    .tyre-options {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .tyre-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .tyre-soft { border-color: #da3633; color: #da3633; }
+    .tyre-medium { border-color: #f1e05a; color: #f1e05a; }
+    .tyre-hard { border-color: #ffffff; color: #ffffff; }
+
+    .tyre-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .garage-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-btn">← Torna al Paddock</a>
+    <h1 style="font-size: 1.4rem;">🏎️ GARAGE SCUDERIA</h1>
+  </header>
+
+  <div class="garage-grid">
+    
+    <!-- COLONNA SINISTRA: SELEZIONE PROFILO -->
+    <div>
+      <div class="panel">
+        <h2>Seleziona Fantamanager</h2>
+        <div class="form-group">
+          <label>Chi sei?</label>
+          <select id="user-select" onchange="loadUserGarage()">
+            <option value="">-- Seleziona un Profilo --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STRATEGIA GOMME (BONUS/MALUS) -->
+      <div class="panel">
+        <h2>Strategia Mescola Start</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+          Scegli con quale gomma la tua squadra inizierà il GP. Una scelta azzeccata porta +5 Punti Bonus!
+        </p>
+        <div class="tyre-options">
+          <div class="tyre-btn tyre-soft" onclick="selectTyre('Soft')">🔴 Soft</div>
+          <div class="tyre-btn tyre-medium" onclick="selectTyre('Medium')">🟡 Medium</div>
+          <div class="tyre-btn tyre-hard" onclick="selectTyre('Hard')">⚪ Hard</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLONNA DESTRA: SCHIERAMENTO SQUADRA -->
+    <div class="panel">
+      <h2>Schieramento per il Prossimo GP</h2>
+      
+      <div class="slot-card">
+        <div>
+          <div class="slot-title">Pilota Titolare 1</div>
+          <div class="slot-value" id="slot-p1">Non Assegnato</div>
+        </div>
+        <span>🏎️</span>
+      </div>
+
+      <div class="slot-card">
+        <div>
+          <div class="slot-title">Pilota Titolare 2</div>
+          <div class="slot-value" id="slot-p2">Non Assegnato</div>
+        </div>
+        <span>🏎️</span>
+      </div>
+
+      <div class="slot-card">
+        <div>
+          <div class="slot-title">Pilota Riserva</div>
+          <div class="slot-value" id="slot-reserve">Non Assegnato</div>
+        </div>
+        <span>🛠️</span>
+      </div>
+
+      <div class="slot-card">
+        <div>
+          <div class="slot-title">Scuderia / Costruttore</div>
+          <div class="slot-value" id="slot-team">Non Assegnata</div>
+        </div>
+        <span>🏭</span>
+      </div>
+
+      <button class="btn-red" onclick="saveLineup()">Conferma e Salva Formazione</button>
+    </div>
+
+  </div>
+
+  <script>
+    let auctionData = JSON.parse(localStorage.getItem('fantaF1_auction')) || { players: {} };
+    let selectedTyre = 'Medium';
+
+    function init() {
+      const select = document.getElementById('user-select');
+      const playerNames = Object.keys(auctionData.players);
+
+      if (playerNames.length === 0) {
+        select.innerHTML = '<option value="">Nessun giocatore dall\'asta! Vai in Asta Room.</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">-- Seleziona il tuo nome --</option>' + 
+        playerNames.map(name => `<option value="${name}">${name}</option>`).join('');
+    }
+
+    function loadUserGarage() {
+      const userName = document.getElementById('user-select').value;
+      if (!userName) return;
+
+      const user = auctionData.players[userName];
+      if (!user || !user.roster) return;
+
+      // Pulisce e assegna in automatico i componenti acquistati nell'asta
+      const roster = user.roster.map(r => r.split(' (')[0]);
+
+      document.getElementById('slot-p1').innerText = roster[0] || 'Vuoto';
+      document.getElementById('slot-p2').innerText = roster[1] || 'Vuoto';
+      document.getElementById('slot-reserve').innerText = roster[2] || 'Vuoto';
+      document.getElementById('slot-team').innerText = roster[3] || 'Vuoto';
+    }
+
+    function selectTyre(tyre) {
+      selectedTyre = tyre;
+      document.querySelectorAll('.tyre-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function saveLineup() {
+      const userName = document.getElementById('user-select').value;
+      if (!userName) {
+        alert("Seleziona prima un Fantamanager!");
+        return;
+      }
+
+      const lineup = {
+        manager: userName,
+        tyre: selectedTyre,
+        savedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem(`fantaF1_lineup_${userName}`, JSON.stringify(lineup));
+      alert(`Formazione e Strategia Gomme (${selectedTyre}) salvate per ${userName}!`);
+    }
+
+    init();
+  </script>
+</body>
+</html>
