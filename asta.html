@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asta Room - Paddock Fantasy</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --accent-red: #e10600;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --neon-glow: rgba(225, 6, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid var(--accent-red);
+      margin-bottom: 25px;
+    }
+
+    .back-btn {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--accent-red); }
+
+    .auction-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    h2 { color: var(--accent-red); font-size: 1.2rem; margin-bottom: 15px; text-transform: uppercase; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+    
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    button.btn-primary {
+      background: var(--accent-red);
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.2s;
+    }
+
+    button.btn-primary:hover { opacity: 0.9; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #30363d;
+    }
+
+    th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+
+    .badge-credits {
+      background: rgba(225, 6, 0, 0.2);
+      color: var(--accent-red);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .auction-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-btn">← Torna al Paddock</a>
+    <h1 style="font-size: 1.4rem;">🔨 ASTA ROOM LIVE</h1>
+  </header>
+
+  <div class="auction-container">
+    
+    <!-- PANNELLO ASSEGNAZIONE -->
+    <div class="panel">
+      <h2>Registra Acquisto</h2>
+      
+      <div class="form-group">
+        <label>Fantamanager</label>
+        <select id="player-select">
+          <option value="Giocatore 1">Giocatore 1</option>
+          <option value="Giocatore 2">Giocatore 2</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Pilota / Costruttore</label>
+        <select id="driver-select">
+          <option value="Max Verstappen (Red Bull)">Max Verstappen</option>
+          <option value="Charles Leclerc (Ferrari)">Charles Leclerc</option>
+          <option value="Lewis Hamilton (Ferrari)">Lewis Hamilton</option>
+          <option value="Lando Norris (McLaren)">Lando Norris</option>
+          <option value="Scuderia Ferrari">Scuderia Ferrari</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Prezzo di Aggiudicazione (M$)</label>
+        <input type="number" id="price-input" placeholder="Es. 120" min="1">
+      </div>
+
+      <button class="btn-primary" onclick="addPurchase()">Conferma Aggiudicazione</button>
+    </div>
+
+    <!-- TABELLONE SQUADRE E CREDITI -->
+    <div class="panel">
+      <h2>Stato delle Rose & Budget</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fantamanager</th>
+            <th>Crediti Rimanenti</th>
+            <th>Rosa Acquistata</th>
+          </tr>
+        </thead>
+        <tbody id="league-table">
+          <tr>
+            <td><strong>Giocatore 1</strong></td>
+            <td><span class="badge-credits">500 M$</span></td>
+            <td>Nessun acquisto</td>
+          </tr>
+          <tr>
+            <td><strong>Giocatore 2</strong></td>
+            <td><span class="badge-credits">500 M$</span></td>
+            <td>Nessun acquisto</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // Logica di base per il calcolo in tempo reale dell'asta
+    const teams = {
+      "Giocatore 1": { budget: 500, roster: [] },
+      "Giocatore 2": { budget: 500, roster: [] }
+    };
+
+    function addPurchase() {
+      const player = document.getElementById('player-select').value;
+      const item = document.getElementById('driver-select').value;
+      const price = parseInt(document.getElementById('price-input').value);
+
+      if (!price || price <= 0) {
+        alert("Inserisci un prezzo valido!");
+        return;
+      }
+
+      if (teams[player].budget < price) {
+        alert("Crediti insufficienti!");
+        return;
+      }
+
+      // Aggiorna dati
+      teams[player].budget -= price;
+      teams[player].roster.push(`${item} (${price}M$)`);
+
+      // Reset input
+      document.getElementById('price-input').value = '';
+
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('league-table');
+      tbody.innerHTML = Object.keys(teams).map(name => `
+        <tr>
+          <td><strong>${name}</strong></td>
+          <td><span class="badge-credits">${teams[name].budget} M$</span></td>
+          <td>${teams[name].roster.length > 0 ? teams[name].roster.join(', ') : '<em>Nessuno</em>'}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
