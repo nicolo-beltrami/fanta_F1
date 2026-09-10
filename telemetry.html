@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telemetry Center - Paddock Fantasy</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --accent-red: #e10600;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --neon-glow: rgba(225, 6, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid var(--accent-red);
+      margin-bottom: 25px;
+    }
+
+    .back-btn {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--accent-red); }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 { color: var(--accent-red); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+    
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    button.btn-red {
+      background: var(--accent-red);
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button.btn-red:hover { opacity: 0.9; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 0.9rem; }
+    th { color: var(--text-muted); text-transform: uppercase; }
+
+    .badge-pts {
+      background: rgba(35, 134, 54, 0.2);
+      color: #2ea043;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .telemetry-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-btn">← Torna al Paddock</a>
+    <h1 style="font-size: 1.4rem;">📊 TELEMETRY CENTER</h1>
+  </header>
+
+  <div class="telemetry-grid">
+    
+    <!-- INSERIMENTO RISULTATI GP -->
+    <div class="panel">
+      <h2>Inserisci Esito GP</h2>
+      
+      <div class="form-group">
+        <label>🥇 Primo Classificato (25 Punti)</label>
+        <input type="text" id="p1-winner" placeholder="Es. Max Verstappen">
+      </div>
+
+      <div class="form-group">
+        <label>🥈 Secondo Classificato (18 Punti)</label>
+        <input type="text" id="p2-winner" placeholder="Es. Charles Leclerc">
+      </div>
+
+      <div class="form-group">
+        <label>🥉 Terzo Classificato (15 Punti)</label>
+        <input type="text" id="p3-winner" placeholder="Es. Lando Norris">
+      </div>
+
+      <div class="form-group">
+        <label>⚡ Giro Veloce (+3 Punti)</label>
+        <input type="text" id="fastest-lap" placeholder="Es. Lewis Hamilton">
+      </div>
+
+      <div class="form-group">
+        <label>🛞 Mescola Vincente del GP</label>
+        <select id="winning-tyre">
+          <option value="Soft">🔴 Soft</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="Hard">⚪ Hard</option>
+        </select>
+      </div>
+
+      <button class="btn-red" onclick="calculateScores()">Calcola Punteggi GP</button>
+    </div>
+
+    <!-- CLASSIFICA GENERALE LEGA -->
+    <div class="panel">
+      <h2>🏆 Classifica Generale Fanta F1</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Pos.</th>
+            <th>Fantamanager</th>
+            <th>Punti Totali</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <!-- Generato via JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    let auctionData = JSON.parse(localStorage.getItem('fantaF1_auction')) || { players: {} };
+    let leaderboard = JSON.parse(localStorage.getItem('fantaF1_leaderboard')) || {};
+
+    function init() {
+      renderLeaderboard();
+    }
+
+    function calculateScores() {
+      const p1 = document.getElementById('p1-winner').value.trim();
+      const p2 = document.getElementById('p2-winner').value.trim();
+      const p3 = document.getElementById('p3-winner').value.trim();
+      const fastLap = document.getElementById('fastest-lap').value.trim();
+      const winningTyre = document.getElementById('winning-tyre').value;
+
+      if (!p1 || !p2 || !p3) {
+        alert("Inserisci almeno il podio completo!");
+        return;
+      }
+
+      const players = Object.keys(auctionData.players);
+
+      players.forEach(name => {
+        let currentScore = leaderboard[name] || 0;
+        let roundScore = 0;
+
+        // Recupera la formazione schierata dal garage
+        const lineup = JSON.parse(localStorage.getItem(`fantaF1_lineup_${name}`));
+        const roster = auctionData.players[name].roster.map(r => r.split(' (')[0]);
+
+        if (roster.length > 0) {
+          // Punti Podio
+          if (roster.includes(p1)) roundScore += 25;
+          if (roster.includes(p2)) roundScore += 18;
+          if (roster.includes(p3)) roundScore += 15;
+
+          // Punti Giro Veloce
+          if (roster.includes(fastLap)) roundScore += 3;
+
+          // Bonus Strategia Gomme
+          if (lineup && lineup.tyre === winningTyre) {
+            roundScore += 5;
+          }
+        }
+
+        leaderboard[name] = currentScore + roundScore;
+      });
+
+      localStorage.setItem('fantaF1_leaderboard', JSON.stringify(leaderboard));
+      alert("Punteggi calcolati con successo!");
+      renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-body');
+      const players = Object.keys(auctionData.players);
+
+      if (players.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted);">Nessun fantamanager presente. Registrali prima nell\'Asta Room.</td></tr>';
+        return;
+      }
+
+      // Ordina la classifica per punteggio decrescente
+      const sorted = players.sort((a, b) => (leaderboard[b] || 0) - (leaderboard[a] || 0));
+
+      tbody.innerHTML = sorted.map((name, index) => `
+        <tr>
+          <td><strong>#${index + 1}</strong></td>
+          <td>${name}</td>
+          <td><span class="badge-pts">${leaderboard[name] || 0} PTS</span></td>
+        </tr>
+      `).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>
