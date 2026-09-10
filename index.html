@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paddock Fantasy F1</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --accent-red: #e10600;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --neon-glow: rgba(225, 6, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid var(--accent-red);
+      margin-bottom: 25px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+
+    .logo span { color: var(--accent-red); }
+
+    /* HERO: WIDGET PROSSIMO GP */
+    .gp-widget {
+      background: linear-gradient(135deg, #1f242d 0%, var(--card-bg) 100%);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 25px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      box-shadow: 0 10px 20px var(--neon-glow);
+      margin-bottom: 30px;
+    }
+
+    .gp-info h2 { color: var(--accent-red); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
+    .gp-info h1 { font-size: 2.2rem; margin: 5px 0 15px 0; }
+
+    .timer {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .time-box {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px 15px;
+      border-radius: 6px;
+      text-align: center;
+      border-left: 3px solid var(--accent-red);
+    }
+
+    .time-box .num { font-size: 1.5rem; font-weight: bold; }
+    .time-box .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+
+    .track-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      border-left: 1px dashed #30363d;
+      padding-left: 20px;
+    }
+
+    .badge {
+      background: rgba(225, 6, 0, 0.15);
+      color: var(--accent-red);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border: 1px solid var(--accent-red);
+    }
+
+    /* BENTO GRID MENU */
+    .grid-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-red);
+      box-shadow: 0 5px 15px var(--neon-glow);
+    }
+
+    .card-icon { font-size: 2rem; margin-bottom: 10px; }
+    .card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .card p { font-size: 0.85rem; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .gp-widget { grid-template-columns: 1fr; }
+      .track-info { align-items: flex-start; border-left: none; border-top: 1px dashed #30363d; padding-left: 0; padding-top: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">PADDOCK<span>FANTASY</span></div>
+    <div class="badge">STAGIONE ONLINE</div>
+  </header>
+
+  <!-- FASE 1: WIDGET PROSSIMO GP -->
+  <section class="gp-widget">
+    <div class="gp-info">
+      <h2>Prossima Gara</h2>
+      <h1>GRAND PRIX MONZA 🇮🇹</h1>
+      <p style="color: var(--text-muted);">Autodromo Nazionale Monza</p>
+
+      <div class="timer">
+        <div class="time-box"><div class="num">02</div><div class="label">Giorni</div></div>
+        <div class="time-box"><div class="num">14</div><div class="label">Ore</div></div>
+        <div class="time-box"><div class="num">35</div><div class="label">Minuti</div></div>
+      </div>
+    </div>
+
+    <div class="track-info">
+      <p>🌡️ Temp. Asfalto: <strong>38°C</strong></p>
+      <p>🌧️ Rischio Pioggia: <strong>10%</strong></p>
+      <p>🏁 Giri: <strong>53</strong></p>
+    </div>
+  </section>
+
+  <!-- BENTO GRID MENU -->
+  <section class="grid-menu">
+    <div class="card">
+      <div class="card-icon">🔨</div>
+      <h3>Asta Room</h3>
+      <p>Organizza l'asta live con i tuoi amici, gestisci i crediti e completa la tua rosa.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🏎️</div>
+      <h3>Garage Scuderia</h3>
+      <p>Schiera i tuoi 2 piloti, la riserva e imposta la strategia gomme per il weekend.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Telemetry Center</h3>
+      <p>Classifiche Piloti e Costruttori reali e della tua lega con statistiche avanzate.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📻</div>
+      <h3>Radio Box</h3>
+      <p>Invia provocazioni agli avversari e controlli le penalità in tempo reale.</p>
+    </div>
+  </section>
+
+</body>
+</html>
