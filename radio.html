@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Box - Paddock Fantasy</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --accent-red: #e10600;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --neon-glow: rgba(225, 6, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 2px solid var(--accent-red);
+      margin-bottom: 25px;
+    }
+
+    .back-btn {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover { color: var(--accent-red); }
+
+    .radio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 { color: var(--accent-red); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+    
+    select, input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    textarea { resize: vertical; height: 80px; }
+
+    button.btn-red {
+      background: var(--accent-red);
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button.btn-red:hover { opacity: 0.9; }
+
+    .feed-item {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-left: 4px solid var(--accent-red);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .feed-user { color: var(--accent-red); font-weight: bold; }
+    .feed-msg { font-size: 0.95rem; }
+
+    .badge-penalty {
+      background: rgba(248, 81, 73, 0.2);
+      color: #f85149;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .radio-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-btn">← Torna al Paddock</a>
+    <h1 style="font-size: 1.4rem;">📻 RADIO BOX & PENALITÀ</h1>
+  </header>
+
+  <div class="radio-grid">
+    
+    <!-- COLONNA SINISTRA: INPUT TRASMISSIONE & PENALITÀ -->
+    <div>
+      <!-- TRANSMIT MESSAGE -->
+      <div class="panel">
+        <h2>📻 Invia Team Radio</h2>
+        
+        <div class="form-group">
+          <label>Mittente</label>
+          <select id="radio-sender">
+            <option value="">-- Seleziona Chi Sei --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Messaggio Radio / Provocazione</label>
+          <textarea id="radio-message" placeholder="Es. 'Box box, la strategia di Luca fa acqua da tutte le parti!'"></textarea>
+        </div>
+
+        <button class="btn-red" onclick="sendRadioMessage()">Trasmetti Via Radio</button>
+      </div>
+
+      <!-- ASSEGNA PENALITÀ COMMISSARI DI GARA -->
+      <div class="panel">
+        <h2>⚠️ Direzione Gara (Penalità)</h2>
+        
+        <div class="form-group">
+          <label>Fantamanager Penalizzato</label>
+          <select id="penalty-user">
+            <option value="">-- Seleziona Fantamanager --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Punti Decurtati</label>
+          <input type="number" id="penalty-points" placeholder="Es. 5" min="1">
+        </div>
+
+        <div class="form-group">
+          <label>Motivazione Penalità</label>
+          <input type="text" id="penalty-reason" placeholder="Es. Formazione schierata in ritardo">
+        </div>
+
+        <button class="btn-red" style="background: #da3633;" onclick="applyPenalty()">Infliggi Penalità FIA</button>
+      </div>
+    </div>
+
+    <!-- COLONNA DESTRA: FEED LIVE MESSAGGI -->
+    <div class="panel">
+      <h2>📡 Feed Live Direzione Gara & Radio</h2>
+      <div id="radio-feed">
+        <!-- Messaggi carichi via JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let auctionData = JSON.parse(localStorage.getItem('fantaF1_auction')) || { players: {} };
+    let messages = JSON.parse(localStorage.getItem('fantaF1_radio_feed')) || [];
+    let leaderboard = JSON.parse(localStorage.getItem('fantaF1_leaderboard')) || {};
+
+    function init() {
+      populateSelects();
+      renderFeed();
+    }
+
+    function populateSelects() {
+      const senderSelect = document.getElementById('radio-sender');
+      const penaltySelect = document.getElementById('penalty-user');
+      const players = Object.keys(auctionData.players);
+
+      if (players.length === 0) {
+        senderSelect.innerHTML = '<option value="">Nessun fantamanager presente</option>';
+        penaltySelect.innerHTML = '<option value="">Nessun fantamanager presente</option>';
+        return;
+      }
+
+      const options = players.map(name => `<option value="${name}">${name}</option>`).join('');
+      senderSelect.innerHTML = '<option value="">-- Seleziona Chi Sei --</option>' + options;
+      penaltySelect.innerHTML = '<option value="">-- Seleziona Fantamanager --</option>' + options;
+    }
+
+    function sendRadioMessage() {
+      const sender = document.getElementById('radio-sender').value;
+      const msg = document.getElementById('radio-message').value.trim();
+
+      if (!sender || !msg) {
+        alert("Seleziona un mittente e scrivi un messaggio!");
+        return;
+      }
+
+      const newMsg = {
+        type: 'radio',
+        user: sender,
+        text: msg,
+        time: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      messages.unshift(newMsg);
+      localStorage.setItem('fantaF1_radio_feed', JSON.stringify(messages));
+      document.getElementById('radio-message').value = '';
+      renderFeed();
+    }
+
+    function applyPenalty() {
+      const target = document.getElementById('penalty-user').value;
+      const points = parseInt(document.getElementById('penalty-points').value);
+      const reason = document.getElementById('penalty-reason').value.trim();
+
+      if (!target || !points || !reason) {
+        alert("Compila tutti i campi della penalità!");
+        return;
+      }
+
+      // Sottrae i punti dalla classifica generale
+      leaderboard[target] = (leaderboard[target] || 0) - points;
+      localStorage.setItem('fantaF1_leaderboard', JSON.stringify(leaderboard));
+
+      const newPenalty = {
+        type: 'penalty',
+        user: target,
+        text: `PENALITÀ: -${points} PTS per ${target}. Motivo: ${reason}`,
+        time: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      messages.unshift(newPenalty);
+      localStorage.setItem('fantaF1_radio_feed', JSON.stringify(messages));
+      
+      document.getElementById('penalty-points').value = '';
+      document.getElementById('penalty-reason').value = '';
+      alert(`Penalità di ${points} punti applicata a ${target}!`);
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const feedContainer = document.getElementById('radio-feed');
+
+      if (messages.length === 0) {
+        feedContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Nessuna trasmissione radio o penalità registrata.</p>';
+        return;
+      }
+
+      feedContainer.innerHTML = messages.map(item => {
+        if (item.type === 'penalty') {
+          return `
+            <div class="feed-item" style="border-left-color: #f85149; background: rgba(248, 81, 73, 0.05);">
+              <div class="feed-header">
+                <span class="badge-penalty">DIREZIONE GARA</span>
+                <span>${item.time}</span>
+              </div>
+              <div class="feed-msg" style="color: #f85149; font-weight: bold;">${item.text}</div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="feed-item">
+            <div class="feed-header">
+              <span class="feed-user">📻 ${item.user}</span>
+              <span>${item.time}</span>
+            </div>
+            <div class="feed-msg">"${item.text}"</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>
