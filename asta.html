@@ -201,13 +201,8 @@
   </div>
 
   <script>
-    // Inizializzazione Dati da localStorage o di default
-    let leagueData = JSON.parse(localStorage.getItem('fantaF1_auction')) || {
-      players: {
-        "Marco": { budget: 500, roster: [] },
-        "Luca": { budget: 500, roster: [] }
-      }
-    };
+    // Inizializzazione Dati senza utenti preimpostati
+    let leagueData = JSON.parse(localStorage.getItem('fantaF1_auction')) || { players: {} };
 
     function saveState() {
       localStorage.setItem('fantaF1_auction', JSON.stringify(leagueData));
@@ -232,7 +227,7 @@
       const item = document.getElementById('item-select').value;
       const price = parseInt(document.getElementById('price-input').value);
 
-      if (!player) { alert("Aggiungi ed elemento un fantamanager!"); return; }
+      if (!player) { alert("Aggiungi e seleziona prima un fantamanager!"); return; }
       if (!price || price <= 0) { alert("Inserisci un prezzo valido!"); return; }
 
       const targetPlayer = leagueData.players[player];
@@ -263,18 +258,20 @@
     }
 
     function render() {
-      // Aggiorna Select Giocatori
       const playerSelect = document.getElementById('player-select');
       const playerNames = Object.keys(leagueData.players);
       
-      playerSelect.innerHTML = playerNames.map(name => 
-        `<option value="${name}">${name}</option>`
-      ).join('');
+      if (playerNames.length === 0) {
+        playerSelect.innerHTML = '<option value="">-- Nessun Fantamanager --</option>';
+      } else {
+        playerSelect.innerHTML = playerNames.map(name => 
+          `<option value="${name}">${name}</option>`
+        ).join('');
+      }
 
-      // Aggiorna Tabella
       const tbody = document.getElementById('league-table-body');
       if (playerNames.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3">Nessun fantamanager registrato.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted);">Nessun fantamanager inserito. Usa il box a sinistra per aggiungere i tuoi amici.</td></tr>';
         return;
       }
 
@@ -291,7 +288,6 @@
       }).join('');
     }
 
-    // Render Iniziale
     render();
   </script>
 </body>
