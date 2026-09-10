@@ -42,7 +42,7 @@
 
     .back-btn:hover { color: var(--accent-red); }
 
-    .auction-container {
+    .auction-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
       gap: 20px;
@@ -53,9 +53,10 @@
       border: 1px solid #30363d;
       border-radius: 12px;
       padding: 20px;
+      margin-bottom: 20px;
     }
 
-    h2 { color: var(--accent-red); font-size: 1.2rem; margin-bottom: 15px; text-transform: uppercase; }
+    h2 { color: var(--accent-red); font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; }
 
     .form-group { margin-bottom: 15px; }
     label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
@@ -67,33 +68,20 @@
       border: 1px solid #30363d;
       background: #0d1117;
       color: #fff;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
-    button.btn-primary {
-      background: var(--accent-red);
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: opacity 0.2s;
-    }
+    button { cursor: pointer; font-weight: bold; transition: background 0.2s; }
 
-    button.btn-primary:hover { opacity: 0.9; }
+    .btn-red { background: var(--accent-red); border: none; }
+    .btn-red:hover { opacity: 0.9; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+    .btn-secondary { background: #21262d; border: 1px solid #30363d; margin-top: 5px; }
+    .btn-secondary:hover { background: #30363d; }
 
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #30363d;
-    }
-
-    th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 0.85rem; }
+    th { color: var(--text-muted); text-transform: uppercase; }
 
     .badge-credits {
       background: rgba(225, 6, 0, 0.2);
@@ -103,8 +91,11 @@
       font-weight: bold;
     }
 
+    .roster-list { font-size: 0.8rem; color: #c9d1d9; }
+    .roster-item { display: inline-block; background: #0d1117; padding: 2px 6px; border-radius: 4px; margin: 2px; }
+
     @media (max-width: 768px) {
-      .auction-container { grid-template-columns: 1fr; }
+      .auction-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -115,61 +106,94 @@
     <h1 style="font-size: 1.4rem;">🔨 ASTA ROOM LIVE</h1>
   </header>
 
-  <div class="auction-container">
+  <div class="auction-grid">
     
-    <!-- PANNELLO ASSEGNAZIONE -->
-    <div class="panel">
-      <h2>Registra Acquisto</h2>
-      
-      <div class="form-group">
-        <label>Fantamanager</label>
-        <select id="player-select">
-          <option value="Giocatore 1">Giocatore 1</option>
-          <option value="Giocatore 2">Giocatore 2</option>
-        </select>
+    <!-- COLONNA DI SINISTRA: CONFIGURAZIONE & AGGIUDICAZIONE -->
+    <div>
+      <!-- CONFIGURAZIONE PARTECIPANTI -->
+      <div class="panel">
+        <h2>1. Gestione Partecipanti</h2>
+        <div class="form-group">
+          <label>Aggiungi Fantamanager</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="player-name" placeholder="Nome amico">
+            <button class="btn-secondary" style="width: 100px;" onclick="addPlayer()">Aggiungi</button>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Pilota / Costruttore</label>
-        <select id="driver-select">
-          <option value="Max Verstappen (Red Bull)">Max Verstappen</option>
-          <option value="Charles Leclerc (Ferrari)">Charles Leclerc</option>
-          <option value="Lewis Hamilton (Ferrari)">Lewis Hamilton</option>
-          <option value="Lando Norris (McLaren)">Lando Norris</option>
-          <option value="Scuderia Ferrari">Scuderia Ferrari</option>
-        </select>
-      </div>
+      <!-- FORM BATTUTA D'ASTA -->
+      <div class="panel">
+        <h2>2. Registra Aggiudicazione</h2>
+        
+        <div class="form-group">
+          <label>Seleziona Fantamanager</label>
+          <select id="player-select"></select>
+        </div>
 
-      <div class="form-group">
-        <label>Prezzo di Aggiudicazione (M$)</label>
-        <input type="number" id="price-input" placeholder="Es. 120" min="1">
-      </div>
+        <div class="form-group">
+          <label>Pilota o Scuderia</label>
+          <select id="item-select">
+            <optgroup label="── PILOTI ──">
+              <option value="Max Verstappen">Max Verstappen (Red Bull)</option>
+              <option value="Liam Lawson">Liam Lawson (Red Bull)</option>
+              <option value="Lewis Hamilton">Lewis Hamilton (Ferrari)</option>
+              <option value="Charles Leclerc">Charles Leclerc (Ferrari)</option>
+              <option value="Lando Norris">Lando Norris (McLaren)</option>
+              <option value="Oscar Piastri">Oscar Piastri (McLaren)</option>
+              <option value="George Russell">George Russell (Mercedes)</option>
+              <option value="Kimi Antonelli">Kimi Antonelli (Mercedes)</option>
+              <option value="Fernando Alonso">Fernando Alonso (Aston Martin)</option>
+              <option value="Lance Stroll">Lance Stroll (Aston Martin)</option>
+              <option value="Pierre Gasly">Pierre Gasly (Alpine)</option>
+              <option value="Jack Doohan">Jack Doohan (Alpine)</option>
+              <option value="Alexander Albon">Alexander Albon (Williams)</option>
+              <option value="Carlos Sainz">Carlos Sainz (Williams)</option>
+              <option value="Yuki Tsunoda">Yuki Tsunoda (RB)</option>
+              <option value="Isack Hadjar">Isack Hadjar (RB)</option>
+              <option value="Nico Hulkenberg">Nico Hulkenberg (Sauber)</option>
+              <option value="Gabriel Bortoleto">Gabriel Bortoleto (Sauber)</option>
+              <option value="Esteban Ocon">Esteban Ocon (Haas)</option>
+              <option value="Oliver Bearman">Oliver Bearman (Haas)</option>
+            </optgroup>
+            <optgroup label="── SCUDERIE / COSTRUTTORI ──">
+              <option value="Scuderia Ferrari">Scuderia Ferrari</option>
+              <option value="Red Bull Racing">Red Bull Racing</option>
+              <option value="McLaren">McLaren</option>
+              <option value="Mercedes">Mercedes</option>
+              <option value="Aston Martin">Aston Martin</option>
+              <option value="Alpine">Alpine</option>
+              <option value="Williams">Williams</option>
+              <option value="RB">RB</option>
+              <option value="Sauber">Sauber</option>
+              <option value="Haas">Haas</option>
+            </optgroup>
+          </select>
+        </div>
 
-      <button class="btn-primary" onclick="addPurchase()">Conferma Aggiudicazione</button>
+        <div class="form-group">
+          <label>Prezzo (M$)</label>
+          <input type="number" id="price-input" placeholder="Es. 120" min="1">
+        </div>
+
+        <button class="btn-red" onclick="confirmPurchase()">Assegna Acquisto</button>
+        <button class="btn-secondary" onclick="resetAuction()" style="margin-top: 15px; color: #f85149;">Azzera Asta</button>
+      </div>
     </div>
 
-    <!-- TABELLONE SQUADRE E CREDITI -->
+    <!-- COLONNA DI DESTRA: TABELLONE LEGA -->
     <div class="panel">
-      <h2>Stato delle Rose & Budget</h2>
+      <h2>3. Tabellone Rose & Crediti</h2>
       <table>
         <thead>
           <tr>
             <th>Fantamanager</th>
-            <th>Crediti Rimanenti</th>
-            <th>Rosa Acquistata</th>
+            <th>Budget Rimanente</th>
+            <th>Rosa (Max 4 slot)</th>
           </tr>
         </thead>
-        <tbody id="league-table">
-          <tr>
-            <td><strong>Giocatore 1</strong></td>
-            <td><span class="badge-credits">500 M$</span></td>
-            <td>Nessun acquisto</td>
-          </tr>
-          <tr>
-            <td><strong>Giocatore 2</strong></td>
-            <td><span class="badge-credits">500 M$</span></td>
-            <td>Nessun acquisto</td>
-          </tr>
+        <tbody id="league-table-body">
+          <!-- Generato via JS -->
         </tbody>
       </table>
     </div>
@@ -177,47 +201,98 @@
   </div>
 
   <script>
-    // Logica di base per il calcolo in tempo reale dell'asta
-    const teams = {
-      "Giocatore 1": { budget: 500, roster: [] },
-      "Giocatore 2": { budget: 500, roster: [] }
+    // Inizializzazione Dati da localStorage o di default
+    let leagueData = JSON.parse(localStorage.getItem('fantaF1_auction')) || {
+      players: {
+        "Marco": { budget: 500, roster: [] },
+        "Luca": { budget: 500, roster: [] }
+      }
     };
 
-    function addPurchase() {
+    function saveState() {
+      localStorage.setItem('fantaF1_auction', JSON.stringify(leagueData));
+      render();
+    }
+
+    function addPlayer() {
+      const nameInput = document.getElementById('player-name');
+      const name = nameInput.value.trim();
+      if (!name) return;
+      if (leagueData.players[name]) {
+        alert("Giocatore già presente!");
+        return;
+      }
+      leagueData.players[name] = { budget: 500, roster: [] };
+      nameInput.value = '';
+      saveState();
+    }
+
+    function confirmPurchase() {
       const player = document.getElementById('player-select').value;
-      const item = document.getElementById('driver-select').value;
+      const item = document.getElementById('item-select').value;
       const price = parseInt(document.getElementById('price-input').value);
 
-      if (!price || price <= 0) {
-        alert("Inserisci un prezzo valido!");
+      if (!player) { alert("Aggiungi ed elemento un fantamanager!"); return; }
+      if (!price || price <= 0) { alert("Inserisci un prezzo valido!"); return; }
+
+      const targetPlayer = leagueData.players[player];
+
+      if (targetPlayer.budget < price) {
+        alert("Crediti insufficienti per questo acquisto!");
         return;
       }
 
-      if (teams[player].budget < price) {
-        alert("Crediti insufficienti!");
+      if (targetPlayer.roster.length >= 4) {
+        alert("Rosa completa! Massimo 4 elementi (3 Piloti + 1 Scuderia).");
         return;
       }
 
-      // Aggiorna dati
-      teams[player].budget -= price;
-      teams[player].roster.push(`${item} (${price}M$)`);
-
-      // Reset input
+      targetPlayer.budget -= price;
+      targetPlayer.roster.push(`${item} (${price}M$)`);
       document.getElementById('price-input').value = '';
-
-      renderTable();
+      
+      saveState();
     }
 
-    function renderTable() {
-      const tbody = document.getElementById('league-table');
-      tbody.innerHTML = Object.keys(teams).map(name => `
-        <tr>
-          <td><strong>${name}</strong></td>
-          <td><span class="badge-credits">${teams[name].budget} M$</span></td>
-          <td>${teams[name].roster.length > 0 ? teams[name].roster.join(', ') : '<em>Nessuno</em>'}</td>
-        </tr>
-      `).join('');
+    function resetAuction() {
+      if (confirm("Vuoi davvero azzerare l'asta e cancellare i dati?")) {
+        localStorage.removeItem('fantaF1_auction');
+        leagueData = { players: {} };
+        render();
+      }
     }
+
+    function render() {
+      // Aggiorna Select Giocatori
+      const playerSelect = document.getElementById('player-select');
+      const playerNames = Object.keys(leagueData.players);
+      
+      playerSelect.innerHTML = playerNames.map(name => 
+        `<option value="${name}">${name}</option>`
+      ).join('');
+
+      // Aggiorna Tabella
+      const tbody = document.getElementById('league-table-body');
+      if (playerNames.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">Nessun fantamanager registrato.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = playerNames.map(name => {
+        const p = leagueData.players[name];
+        const rosterHTML = p.roster.map(r => `<span class="roster-item">${r}</span>`).join(' ') || '<em>Nessun acquisto</em>';
+        return `
+          <tr>
+            <td><strong>${name}</strong></td>
+            <td><span class="badge-credits">${p.budget} M$</span></td>
+            <td class="roster-list">${rosterHTML}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render Iniziale
+    render();
   </script>
 </body>
 </html>
