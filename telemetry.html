@@ -81,6 +81,33 @@
 
     button.btn-red:hover { opacity: 0.9; }
 
+    button.btn-api {
+      background: #238636;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: opacity 0.2s, background 0.2s;
+    }
+
+    button.btn-api:disabled {
+      background: #21262d;
+      color: #8b949e;
+      cursor: not-allowed;
+      border: 1px solid #30363d;
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      margin-bottom: 15px;
+      padding: 8px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .status-warning { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
+    .status-success { background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid #2ea043; }
+
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; font-size: 0.9rem; }
     th { color: var(--text-muted); text-transform: uppercase; }
@@ -107,43 +134,62 @@
 
   <div class="telemetry-grid">
     
-    <!-- INSERIMENTO RISULTATI GP -->
+    <!-- SINISTRA: SYNC API E FORM -->
     <div class="panel">
-      <h2>Inserisci Esito GP</h2>
+      <h2>Sincronizzazione GP</h2>
+
+      <div class="form-group">
+        <label>Seleziona Gara da Sincronizzare</label>
+        <select id="race-round" onchange="checkRaceAvailability()">
+          <option value="last">Ultima Gara Disputata</option>
+          <option value="1">Round 1 - GP Australia</option>
+          <option value="2">Round 2 - GP Cina</option>
+          <option value="3">Round 3 - GP Giappone</option>
+          <option value="4">Round 4 - GP Bahrain</option>
+          <option value="5">Round 5 - GP Arabia Saudita</option>
+        </select>
+      </div>
+
+      <button class="btn-api" id="fetch-btn" onclick="fetchF1Results()">⚡ Scarica Risultati Reali F1</button>
+      <div id="status-box" class="status-msg"></div>
+      
+      <hr style="border-color: #30363d; margin: 15px 0;">
+
+      <h2>Dati Weekend</h2>
       
       <div class="form-group">
-        <label>🥇 Primo Classificato (25 Punti)</label>
-        <input type="text" id="p1-winner" placeholder="Es. Max Verstappen">
+        <label>🥇 1° Classificato (25 PTS)</label>
+        <input type="text" id="p1-winner" placeholder="In attesa di sincronizzazione..." readonly>
       </div>
 
       <div class="form-group">
-        <label>🥈 Secondo Classificato (18 Punti)</label>
-        <input type="text" id="p2-winner" placeholder="Es. Charles Leclerc">
+        <label>🥈 2° Classificato (18 PTS)</label>
+        <input type="text" id="p2-winner" placeholder="In attesa di sincronizzazione..." readonly>
       </div>
 
       <div class="form-group">
-        <label>🥉 Terzo Classificato (15 Punti)</label>
-        <input type="text" id="p3-winner" placeholder="Es. Lando Norris">
+        <label>🥉 3° Classificato (15 PTS)</label>
+        <input type="text" id="p3-winner" placeholder="In attesa di sincronizzazione..." readonly>
       </div>
 
       <div class="form-group">
-        <label>⚡ Giro Veloce (+3 Punti)</label>
-        <input type="text" id="fastest-lap" placeholder="Es. Lewis Hamilton">
+        <label>⚡ Giro Veloce (+3 PTS)</label>
+        <input type="text" id="fastest-lap" placeholder="In attesa di sincronizzazione..." readonly>
       </div>
 
       <div class="form-group">
-        <label>🛞 Mescola Vincente del GP</label>
+        <label>🛞 Mescola Vincente GP (Strategia Gomme)</label>
         <select id="winning-tyre">
           <option value="Soft">🔴 Soft</option>
-          <option value="Medium">🟡 Medium</option>
+          <option value="Medium" selected>🟡 Medium</option>
           <option value="Hard">⚪ Hard</option>
         </select>
       </div>
 
-      <button class="btn-red" onclick="calculateScores()">Calcola Punteggi GP</button>
+      <button class="btn-red" id="calc-btn" onclick="calculateScores()" disabled>Calcola Punteggi Lega</button>
     </div>
 
-    <!-- CLASSIFICA GENERALE LEGA -->
+    <!-- DESTRA: CLASSIFICA LEGA -->
     <div class="panel">
       <h2>🏆 Classifica Generale Fanta F1</h2>
       <table>
@@ -162,12 +208,99 @@
 
   </div>
 
+  <script src="calendar.js"></script>
   <script>
     let auctionData = JSON.parse(localStorage.getItem('fantaF1_auction')) || { players: {} };
     let leaderboard = JSON.parse(localStorage.getItem('fantaF1_leaderboard')) || {};
 
     function init() {
       renderLeaderboard();
+      checkRaceAvailability();
+    }
+
+    function checkRaceAvailability() {
+      const selectedRound = document.getElementById('race-round').value;
+      const btn = document.getElementById('fetch-btn');
+      const statusBox = document.getElementById('status-box');
+
+      statusBox.style.display = 'none';
+
+      if (selectedRound === 'last') {
+        btn.disabled = false;
+        return;
+      }
+
+      const raceIndex = parseInt(selectedRound) - 1;
+      if (typeof f1Calendar !== 'undefined' && f1Calendar[raceIndex]) {
+        const raceDate = new Date(f1Calendar[raceIndex].date);
+        // Stima fine gara: 3 ore dopo l'orario di partenza ufficiale
+        const raceEndEstimated = new Date(raceDate.getTime() + (3 * 60 * 60 * 1000));
+        const now = new Date();
+
+        if (now < raceEndEstimated) {
+          btn.disabled = true;
+          statusBox.className = "status-msg status-warning";
+          statusBox.innerText = `⏳ Gara non ancora conclusa! Il download sarà disponibile il ${raceDate.toLocaleDateString('it-IT')} dopo il termine della corsa.`;
+          statusBox.style.display = 'block';
+        } else {
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function fetchF1Results() {
+      const btn = document.getElementById('fetch-btn');
+      const calcBtn = document.getElementById('calc-btn');
+      const round = document.getElementById('race-round').value;
+      const statusBox = document.getElementById('status-box');
+
+      btn.innerText = "⏳ Verifico esito su API ufficiali...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`https://api.jolpica.net/ergast/f1/2026/${round}/results.json`);
+        const data = await response.json();
+
+        const raceData = data.MRData.RaceTable.Races[0];
+
+        if (!raceData || !raceData.Results || raceData.Results.length === 0) {
+          statusBox.className = "status-msg status-warning";
+          statusBox.innerText = "⚠️ La gara non è ancora stata completata o i dati ufficiali non sono stati ancora pubblicati.";
+          statusBox.style.display = 'block';
+          btn.innerText = "⚡ Scarica Risultati Reali F1";
+          btn.disabled = false;
+          return;
+        }
+
+        const results = raceData.Results;
+
+        const p1 = `${results[0].Driver.givenName} ${results[0].Driver.familyName}`;
+        const p2 = `${results[1].Driver.givenName} ${results[1].Driver.familyName}`;
+        const p3 = `${results[2].Driver.givenName} ${results[2].Driver.familyName}`;
+
+        const fastLapDriver = results.find(r => r.FastestLap && r.FastestLap.rank === "1");
+        const fastLapName = fastLapDriver ? `${fastLapDriver.Driver.givenName} ${fastLapDriver.Driver.familyName}` : p1;
+
+        document.getElementById('p1-winner').value = p1;
+        document.getElementById('p2-winner').value = p2;
+        document.getElementById('p3-winner').value = p3;
+        document.getElementById('fastest-lap').value = fastLapName;
+
+        statusBox.className = "status-msg status-success";
+        statusBox.innerText = `✅ Risultati del ${raceData.raceName} acquisiti con successo! Premi "Calcola Punteggi" per aggiornare la lega.`;
+        statusBox.style.display = 'block';
+
+        calcBtn.disabled = false;
+
+      } catch (error) {
+        console.error("Errore API:", error);
+        statusBox.className = "status-msg status-warning";
+        statusBox.innerText = "❌ Impossibile connettersi ai server F1 o gara non ancora ufficiale.";
+        statusBox.style.display = 'block';
+      } finally {
+        btn.innerText = "⚡ Scarica Risultati Reali F1";
+        btn.disabled = false;
+      }
     }
 
     function calculateScores() {
@@ -178,7 +311,7 @@
       const winningTyre = document.getElementById('winning-tyre').value;
 
       if (!p1 || !p2 || !p3) {
-        alert("Inserisci almeno il podio completo!");
+        alert("Scarica i dati del GP prima di procedere con il calcolo!");
         return;
       }
 
@@ -188,20 +321,16 @@
         let currentScore = leaderboard[name] || 0;
         let roundScore = 0;
 
-        // Recupera la formazione schierata dal garage
         const lineup = JSON.parse(localStorage.getItem(`fantaF1_lineup_${name}`));
         const roster = auctionData.players[name].roster.map(r => r.split(' (')[0]);
 
         if (roster.length > 0) {
-          // Punti Podio
-          if (roster.includes(p1)) roundScore += 25;
-          if (roster.includes(p2)) roundScore += 18;
-          if (roster.includes(p3)) roundScore += 15;
+          if (roster.some(item => p1.includes(item) || item.includes(p1))) roundScore += 25;
+          if (roster.some(item => p2.includes(item) || item.includes(p2))) roundScore += 18;
+          if (roster.some(item => p3.includes(item) || item.includes(p3))) roundScore += 15;
 
-          // Punti Giro Veloce
-          if (roster.includes(fastLap)) roundScore += 3;
+          if (roster.some(item => fastLap.includes(item) || item.includes(fastLap))) roundScore += 3;
 
-          // Bonus Strategia Gomme
           if (lineup && lineup.tyre === winningTyre) {
             roundScore += 5;
           }
@@ -211,7 +340,7 @@
       });
 
       localStorage.setItem('fantaF1_leaderboard', JSON.stringify(leaderboard));
-      alert("Punteggi calcolati con successo!");
+      alert("Punteggi aggiornati con successo nella classifica generale!");
       renderLeaderboard();
     }
 
@@ -220,11 +349,10 @@
       const players = Object.keys(auctionData.players);
 
       if (players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted);">Nessun fantamanager presente. Registrali prima nell\'Asta Room.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="color: var(--text-muted);">Nessun fantamanager presente. Registrali nell\'Asta Room.</td></tr>';
         return;
       }
 
-      // Ordina la classifica per punteggio decrescente
       const sorted = players.sort((a, b) => (leaderboard[b] || 0) - (leaderboard[a] || 0));
 
       tbody.innerHTML = sorted.map((name, index) => `
